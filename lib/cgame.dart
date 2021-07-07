@@ -18,7 +18,7 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
         ParallaxImage(
           'water.png',
           repeat: ImageRepeat.repeat,
-          alignment: Alignment.topCenter,
+          fill: LayerFill.width,
         ),
         ParallaxImage('cloud.png', repeat: ImageRepeat.repeat),
       ],
