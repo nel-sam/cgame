@@ -11,6 +11,7 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
   Size screenSize;
   ParallaxComponent _parallaxComponent;
   AnimationComponent player;
+  int newX;
 
   CGame() {
     _parallaxComponent = ParallaxComponent(
@@ -48,15 +49,30 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
 
     _parallaxComponent.width = size.width;
     _parallaxComponent.height = size.height;
-    player.width = size.width / 2;
-    player.height = size.height / 4;
+    player.width = 200;
+    player.height = 200;
     player.y = size.height - player.height - 100;
-    player.x = screenCenterX - (player.width / 2);
+    player.x = (screenCenterX - (player.width / 2)).floorToDouble();
+    newX = player.x.floor();
 
     super.resize(size);
   }
 
+  @override
+  void onTapDown(TapDownDetails d) {
+    newX = (d.localPosition.dx - (player.width / 2)).floor();
+  }
+
   void update(double t) {
+    if (player.x.floor() != newX) {
+      final isRightMovement = player.x - newX < 0;
+      if (isRightMovement) {
+        player.x += 2;
+      } else {
+        player.x -= 2;
+      }
+    }
+
     super.update(t);
   }
 }
