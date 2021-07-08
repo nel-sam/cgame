@@ -23,6 +23,7 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
   int newX;
   int score = 0;
   TextComponent text;
+  double defaultBgBaseSpeed = -200;
 
   CGame() {
     backgrounds = ParallaxComponent(
@@ -34,7 +35,7 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
         ),
         ParallaxImage('cloud.png', repeat: ImageRepeat.repeat),
       ],
-      baseSpeed: Offset(0, -200),
+      baseSpeed: Offset(0, defaultBgBaseSpeed),
       layerDelta: Offset(200, -400),
     );
 
@@ -142,6 +143,7 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
     int defaultFoodSpeed = 6;
     int defaultPlaneSpeed = 8;
 
+    backgrounds.baseSpeed = Offset(0, defaultBgBaseSpeed + (score * 10));
     if (player.x.floor() != newX) {
       final isRightMovement = player.x - newX < 0;
       if (isRightMovement) {
