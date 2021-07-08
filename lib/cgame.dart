@@ -14,6 +14,7 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
   Size screenSize;
   ParallaxComponent backgrounds;
   AnimationComponent player;
+  AnimationComponent plane;
   SpriteComponent food;
   int newX;
 
@@ -33,18 +34,29 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
 
     add(backgrounds);
 
-    final spriteSheet = SpriteSheet(
+    final dragonSheet = SpriteSheet(
         imageName: 'dragon_sprite.png',
-        textureWidth: (405),
+        textureWidth: 405,
         textureHeight: 400,
         columns: 7,
         rows: 1);
 
     player = AnimationComponent.empty();
     player.animation =
-        spriteSheet.createAnimation(0, from: 0, to: 6, stepTime: 0.1);
-
+        dragonSheet.createAnimation(0, from: 0, to: 6, stepTime: 0.1);
     add(player);
+
+    final planeSheet = SpriteSheet(
+        imageName: 'plane.png',
+        textureWidth: 400,
+        textureHeight: 400,
+        columns: 2,
+        rows: 1);
+
+    plane = AnimationComponent.empty();
+    plane.animation = planeSheet.createAnimation(0,
+        from: 0, to: 2, stepTime: 0.1, loop: true);
+    add(plane);
 
     food = SpriteComponent();
     food.sprite = Sprite('food.png', height: 53, width: 45);
@@ -67,6 +79,11 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
     food.y = 20;
     food.width = 45;
     food.height = 53;
+
+    plane.x = 100;
+    plane.y = 100;
+    plane.width = 120;
+    plane.height = 120;
 
     super.resize(size);
   }
@@ -93,14 +110,27 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
       food.x = getRandomX();
     }
 
+    if (plane.y < screenSize.height) {
+      plane.y += 6;
+      plane.x += getRandomX() % 2 == 0 ? -1 : 1;
+    } else {
+      plane.y = 0;
+      plane.x = getRandomX();
+    }
+
     super.update(t);
   }
 
   double getRandomX() {
-    Random rnd;
-    int min = 0;
-    int max = screenSize.width.toInt() - 20;
-    rnd = new Random();
-    return (min + rnd.nextInt(max - min)).toDouble();
+    try {
+      Random rnd;
+      int min = 0;
+      int max = screenSize.width.toInt() - 20;
+      rnd = new Random();
+      final result = (min + rnd.nextInt(max - min)).toDouble();
+      return result;
+    } catch (ex) {
+      return 0;
+    }
   }
 }
