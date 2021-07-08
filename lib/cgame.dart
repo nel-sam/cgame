@@ -118,7 +118,7 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
   }
 
   void update(double t) {
-    if (foodCollision()) {
+    if (isFoodCollision()) {
       handleFoodCollision();
     } else if (isCrashing) {
       if (crashFrameCount-- <= 0) {
@@ -135,7 +135,7 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
         plane.x -= 3;
         plane.angle--;
       }
-    } else if (planeCollision()) {
+    } else if (isPlaneCollision()) {
       handlePlaneCollision();
     }
 
@@ -206,13 +206,22 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
     }
   }
 
-  bool foodCollision() {
-    int xDist = (player.x - food.x).abs().toInt();
-    bool inYRange = food.y >= player.y && (food.y + food.height) >= player.y;
-    return xDist < (food.width / 2) && inYRange;
+  bool isFoodCollision() {
+    double playerCenterX = player.x + (player.width / 2);
+    double playerMinY = player.y;
+    double playerMaxY = player.y + player.height;
+
+    double foodCenterX = food.x + (food.width / 2);
+    double foodMinY = food.y;
+    double foodMaxY = food.y + food.height;
+
+    bool inXRange =
+        (playerCenterX - foodCenterX).abs().toInt() < food.width / 2;
+    bool inYRange = foodMinY >= playerMinY && foodMaxY <= playerMaxY;
+    return inXRange && inYRange;
   }
 
-  bool planeCollision() {
+  bool isPlaneCollision() {
     int xDist = (player.x - plane.x).abs().toInt();
     bool inYRange = plane.y >= player.y && (plane.y + plane.height) >= player.y;
     return xDist < (plane.width / 2) && inYRange;
