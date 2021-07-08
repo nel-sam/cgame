@@ -76,10 +76,10 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
   }
 
   getPointsDisplay() {
-    if (score == 1)
-      return '1 point';
-    else
-      return '$score points';
+    if (score == 1) return '1 point';
+    if (score <= 0) score = 0;
+
+    return '$score points';
   }
 
   void resize(Size size) {
@@ -126,34 +126,44 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
         plane.width = 120;
         plane.height = 120;
         plane.y = -200;
+        plane.angle = 0;
       } else {
         crashFrameCount--;
         plane.width -= 3;
         plane.height -= 3;
         plane.x -= 3;
+        plane.angle--;
       }
     } else if (planeCollision()) {
       handlePlaneCollision();
     }
 
+    int defaultPlayerSpeed = 2;
+    int defaultFoodSpeed = 6;
+    int defaultPlaneSpeed = 8;
+
     if (player.x.floor() != newX) {
       final isRightMovement = player.x - newX < 0;
       if (isRightMovement) {
-        player.x += 2;
+        player.x += defaultPlayerSpeed;
       } else {
-        player.x -= 2;
+        player.x -= defaultPlayerSpeed;
       }
     }
 
     if (food.y < screenSize.height) {
-      food.y += 6;
+      food.y += score <= 0
+          ? defaultFoodSpeed
+          : defaultPlaneSpeed + (score / 2).floor();
     } else {
       food.y = 0;
       food.x = getRandomX();
     }
 
     if (plane.y < screenSize.height) {
-      plane.y += 6;
+      plane.y += score <= 0
+          ? defaultPlaneSpeed
+          : defaultFoodSpeed + (score / 3).floor();
       plane.x += getRandomX() % 3 == 0 ? -1 : 1;
     } else {
       plane.y = 0;
@@ -195,10 +205,14 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
   }
 
   bool foodCollision() {
-    return player.x - food.x < 10 && player.y <= (food.y);
+    int xDist = (player.x - food.x).abs().toInt();
+    bool inYRange = food.y >= player.y && (food.y + food.height) >= player.y;
+    return xDist < (food.width / 2) && inYRange;
   }
 
   bool planeCollision() {
-    return player.x - plane.x < 0 && player.y <= (plane.y + plane.height);
+    int xDist = (player.x - plane.x).abs().toInt();
+    bool inYRange = plane.y >= player.y && (plane.y + plane.height) >= player.y;
+    return xDist < (plane.width / 2) && inYRange;
   }
 }
