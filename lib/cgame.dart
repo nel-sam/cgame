@@ -128,8 +128,8 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
         plane.y = -200;
       } else {
         crashFrameCount--;
-        plane.width--;
-        plane.height--;
+        plane.width -= 3;
+        plane.height -= 3;
         plane.x -= 3;
       }
     } else if (planeCollision()) {
@@ -182,7 +182,12 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
       int min = 40;
       int max = screenSize.width.toInt() - 60;
       rnd = new Random();
-      final numba = (min + rnd.nextInt(max - min));
+      int numba = (min + rnd.nextInt(max - min));
+
+      if (numba == null) {
+        numba = 0;
+      }
+
       return numba.toDouble();
     } catch (ex) {
       return 100;
@@ -194,6 +199,6 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
   }
 
   bool planeCollision() {
-    return player.x - plane.x < 20 && player.y <= (plane.y);
+    return player.x - plane.x < 0 && player.y <= (plane.y + plane.height);
   }
 }
