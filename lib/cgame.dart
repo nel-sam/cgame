@@ -17,6 +17,8 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
   ParallaxComponent backgrounds;
   AnimationComponent player;
   AnimationComponent plane;
+  bool isCrashing = false;
+  int crashFrameCount = 100;
   SpriteComponent food;
   int newX;
   int score = 0;
@@ -86,21 +88,22 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
 
     backgrounds.width = size.width;
     backgrounds.height = size.height;
-    player.width = 200;
-    player.height = 200;
-    player.y = size.height - player.height - 100;
-    player.x = (screenCenterX - (player.width / 2)).floorToDouble();
-    newX = player.x.floor();
 
-    food.x = 30;
-    food.y = 20;
+    food.x = getRandomX();
+    food.y = -100;
     food.width = 45;
     food.height = 53;
 
-    plane.x = 100;
-    plane.y = 100;
+    plane.x = getRandomX();
+    plane.y = -30;
     plane.width = 120;
     plane.height = 120;
+
+    player.width = 200;
+    player.height = 200;
+    player.y = size.height - player.height - 100;
+    player.x = getRandomX();
+    newX = player.x.floor();
 
     text.x = screenCenterX - 50;
     text.y = 50;
@@ -115,15 +118,22 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
 
   void update(double t) {
     if (foodCollision()) {
-      score++;
-      text.text = getPointsDisplay();
-      food.y = -100;
-      food.x = getRandomX();
+      handleFoodCollision();
+    } else if (isCrashing) {
+      if (crashFrameCount-- <= 0) {
+        isCrashing = false;
+        crashFrameCount = 100;
+        plane.width = 120;
+        plane.height = 120;
+        plane.y = -200;
+      } else {
+        crashFrameCount--;
+        plane.width--;
+        plane.height--;
+        plane.x -= 3;
+      }
     } else if (planeCollision()) {
-      score--;
-      text.text = getPointsDisplay();
-      plane.y = -200;
-      plane.x = getRandomX();
+      handlePlaneCollision();
     }
 
     if (player.x.floor() != newX) {
@@ -153,24 +163,37 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
     super.update(t);
   }
 
+  void handlePlaneCollision() {
+    score--;
+    text.text = getPointsDisplay();
+    isCrashing = true;
+  }
+
+  void handleFoodCollision() {
+    score++;
+    text.text = getPointsDisplay();
+    food.y = -100;
+    food.x = getRandomX();
+  }
+
   double getRandomX() {
     try {
       Random rnd;
-      int min = 0;
-      int max = screenSize.width.toInt() - 20;
+      int min = 40;
+      int max = screenSize.width.toInt() - 60;
       rnd = new Random();
-      final result = (min + rnd.nextInt(max - min)).toDouble();
-      return result;
+      final numba = (min + rnd.nextInt(max - min));
+      return numba.toDouble();
     } catch (ex) {
-      return 0;
+      return 100;
     }
   }
 
   bool foodCollision() {
-    return player.x - food.x < 50 && player.y <= (food.y + food.height);
+    return player.x - food.x < 10 && player.y <= (food.y);
   }
 
   bool planeCollision() {
-    return player.x - plane.x < 50 && player.y <= (plane.y + plane.height);
+    return player.x - plane.x < 20 && player.y <= (plane.y);
   }
 }
