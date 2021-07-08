@@ -16,6 +16,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: "^0.9.0"
 
 flutter:
   uses-material-design: true
@@ -26,3 +27,13 @@ analyzer:
   strong-mode: true
   language:
     enableSuperMixins: true
+
+# flutter pub run flutter_launcher_icons:main
+flutter_icons:
+  android: true
+  ios: true
+  # logo_512.png must have the alpha channel removed using Gimp or PhotoShop
+  image_path_android: assets/icon.png
+  image_path_ios: assets/icon.png
+  adaptive_icon_background: assets/icon.png
+  adaptive_icon_foreground: assets/icon.png
