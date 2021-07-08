@@ -4,10 +4,12 @@ import 'dart:ui';
 import 'package:flame/components/animation_component.dart';
 import 'package:flame/components/component.dart';
 import 'package:flame/components/parallax_component.dart';
+import 'package:flame/components/text_component.dart';
 import 'package:flame/game.dart';
 import 'package:flame/gestures.dart';
 import 'package:flame/sprite.dart';
 import 'package:flame/spritesheet.dart';
+import 'package:flame/text_config.dart';
 import 'package:flutter/material.dart';
 
 class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
@@ -17,6 +19,8 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
   AnimationComponent plane;
   SpriteComponent food;
   int newX;
+  int score = 0;
+  TextComponent text;
 
   CGame() {
     backgrounds = ParallaxComponent(
@@ -61,6 +65,19 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
     food = SpriteComponent();
     food.sprite = Sprite('food.png', height: 53, width: 45);
     add(food);
+
+    text = TextComponent(
+      getPointsDisplay(),
+      config: TextConfig(fontSize: 50, color: Colors.white),
+    );
+    add(text);
+  }
+
+  getPointsDisplay() {
+    if (score == 1)
+      return '1 point';
+    else
+      return '$score points';
   }
 
   void resize(Size size) {
@@ -85,6 +102,9 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
     plane.width = 120;
     plane.height = 120;
 
+    text.x = screenCenterX - 50;
+    text.y = 50;
+
     super.resize(size);
   }
 
@@ -94,6 +114,18 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
   }
 
   void update(double t) {
+    if (foodCollision()) {
+      score++;
+      text.text = getPointsDisplay();
+      food.y = -100;
+      food.x = getRandomX();
+    } else if (planeCollision()) {
+      score--;
+      text.text = getPointsDisplay();
+      plane.y = -200;
+      plane.x = getRandomX();
+    }
+
     if (player.x.floor() != newX) {
       final isRightMovement = player.x - newX < 0;
       if (isRightMovement) {
@@ -112,7 +144,7 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
 
     if (plane.y < screenSize.height) {
       plane.y += 6;
-      plane.x += getRandomX() % 2 == 0 ? -1 : 1;
+      plane.x += getRandomX() % 3 == 0 ? -1 : 1;
     } else {
       plane.y = 0;
       plane.x = getRandomX();
@@ -132,5 +164,13 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
     } catch (ex) {
       return 0;
     }
+  }
+
+  bool foodCollision() {
+    return player.x - food.x < 50 && player.y <= (food.y + food.height);
+  }
+
+  bool planeCollision() {
+    return player.x - plane.x < 50 && player.y <= (plane.y + plane.height);
   }
 }
