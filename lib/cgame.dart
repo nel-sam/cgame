@@ -4,12 +4,10 @@ import 'dart:ui';
 import 'package:flame/components/animation_component.dart';
 import 'package:flame/components/component.dart';
 import 'package:flame/components/parallax_component.dart';
-import 'package:flame/components/text_component.dart';
 import 'package:flame/game.dart';
 import 'package:flame/gestures.dart';
 import 'package:flame/sprite.dart';
 import 'package:flame/spritesheet.dart';
-import 'package:flame/text_config.dart';
 import 'package:flutter/material.dart';
 
 class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
@@ -20,10 +18,13 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
   bool isCrashing = false;
   int crashFrameCount = 100;
   SpriteComponent food;
-  int newX;
+  SpriteComponent number1;
+  SpriteComponent number2;
+  double newX;
   int score = 0;
-  TextComponent text;
   double defaultBgBaseSpeed = -200;
+  double numberWH = 50;
+  bool moveRight;
 
   CGame() {
     backgrounds = ParallaxComponent(
@@ -69,18 +70,32 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
     food.sprite = Sprite('food.png', height: 53, width: 45);
     add(food);
 
-    text = TextComponent(
-      getPointsDisplay(),
-      config: TextConfig(fontSize: 50, color: Colors.white),
-    );
-    add(text);
+    number1 = SpriteComponent();
+    number1.sprite = Sprite('numbers/0.png', height: 50, width: 50);
+    add(number1);
+
+    number2 = SpriteComponent();
+    number2.sprite = Sprite('numbers/0.png', height: 50, width: 50);
+    add(number2);
+
+    setPointsDisplay();
   }
 
-  getPointsDisplay() {
-    if (score == 1) return '1 point';
-    if (score <= 0) score = 0;
+  setPointsDisplay() {
+    score = score < 0 ? 0 : score;
+    final scoreAsStr = score.toString();
 
-    return '$score points';
+    if (score < 10) {
+      number2.y = -400;
+      number1.sprite =
+          Sprite('numbers/$score.png', height: numberWH, width: numberWH);
+    } else {
+      number2.y = 100;
+      number1.sprite = Sprite('numbers/${scoreAsStr[1]}.png',
+          height: numberWH, width: numberWH);
+      number2.sprite = Sprite('numbers/${scoreAsStr[0]}.png',
+          height: numberWH, width: numberWH);
+    }
   }
 
   void resize(Size size) {
@@ -104,17 +119,29 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
     player.height = 200;
     player.y = size.height - player.height - 100;
     player.x = getRandomX();
-    newX = player.x.floor();
+    newX = player.x;
 
-    text.x = screenCenterX - 50;
-    text.y = 50;
+    number1.width = numberWH;
+    number1.height = numberWH;
+    number1.x = screenCenterX - number1.width / 2;
+    number1.y = 100;
+    add(number1);
+
+    number2.width = numberWH;
+    number2.height = numberWH;
+    number2.x = screenCenterX - 300;
+    number2.y = -400;
+    add(number2);
 
     super.resize(size);
   }
 
   @override
   void onTapDown(TapDownDetails d) {
-    newX = (d.localPosition.dx - (player.width / 2)).floor();
+    double min = -20;
+    double max = screenSize.width - 40;
+    moveRight = (player.x - d.localPosition.dx).floor() < 0;
+    newX = moveRight ? max : min;
   }
 
   void update(double t) {
@@ -144,12 +171,11 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
     int defaultPlaneSpeed = 8;
 
     backgrounds.baseSpeed = Offset(0, defaultBgBaseSpeed + (score * 10));
-    if (player.x.floor() != newX) {
-      final isRightMovement = player.x - newX < 0;
-      if (isRightMovement) {
-        player.x += defaultPlayerSpeed;
+    if (player.x.floor() != newX.floor()) {
+      if (moveRight) {
+        if (player.x < screenSize.width) player.x += defaultPlayerSpeed;
       } else {
-        player.x -= defaultPlayerSpeed;
+        if (player.x > -20) player.x -= defaultPlayerSpeed;
       }
     }
 
@@ -177,13 +203,13 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
 
   void handlePlaneCollision() {
     score--;
-    text.text = getPointsDisplay();
+    setPointsDisplay();
     isCrashing = true;
   }
 
   void handleFoodCollision() {
     score++;
-    text.text = getPointsDisplay();
+    setPointsDisplay();
     food.y = -100;
     food.x = getRandomX();
   }

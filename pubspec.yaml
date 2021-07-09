@@ -1,4 +1,4 @@
-name: cgame
+name: dragonpuppyfun
 description: A new Flutter project.
 
 version: 1.0.0+1
@@ -22,6 +22,8 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/images/ui/
+    - assets/images/numbers/
 
 analyzer:
   strong-mode: true
@@ -37,3 +39,10 @@ flutter_icons:
   image_path_ios: assets/icon.png
   adaptive_icon_background: assets/icon.png
   adaptive_icon_foreground: assets/icon.png
+
+# Install on device via USB
+# flutter build ios --release
+# flutter install
+
+# Build deployable IOS:         flutter build ipa
+# Build deployable Android:     flutter build appbundle
