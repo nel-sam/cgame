@@ -20,11 +20,14 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
   SpriteComponent food;
   SpriteComponent number1;
   SpriteComponent number2;
+  SpriteComponent gameOver;
   double newX;
   int score = 0;
   double defaultBgBaseSpeed = -200;
   double numberWH = 50;
   bool moveRight;
+  int loopsDone = 1;
+  int maxLoops = 25;
 
   CGame() {
     backgrounds = ParallaxComponent(
@@ -77,6 +80,10 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
     number2 = SpriteComponent();
     number2.sprite = Sprite('numbers/0.png', height: 50, width: 50);
     add(number2);
+
+    gameOver = SpriteComponent();
+    gameOver.sprite = Sprite('gameover.png', height: 200, width: 200);
+    add(gameOver);
 
     setPointsDisplay();
   }
@@ -133,6 +140,12 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
     number2.y = -400;
     add(number2);
 
+    gameOver.width = 0;
+    gameOver.height = 0;
+    gameOver.x = screenCenterX - 100;
+    gameOver.y = (screenSize.height / 2) - 100;
+    add(gameOver);
+
     super.resize(size);
   }
 
@@ -145,6 +158,14 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
   }
 
   void update(double t) {
+    if (isGameOver()) {
+      plane.width = plane.height = 0;
+      food.width = food.height = 0;
+      player.width = player.height = 0;
+      gameOver.width = 200;
+      gameOver.height = 200;
+    }
+
     if (isFoodCollision()) {
       handleFoodCollision();
     } else if (isCrashing) {
@@ -155,12 +176,18 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
         plane.height = 120;
         plane.y = -200;
         plane.angle = 0;
+
+        player.width = 200;
+        player.height = 200;
       } else {
         crashFrameCount--;
         plane.width -= 3;
         plane.height -= 3;
         plane.x -= 3;
         plane.angle--;
+
+        player.width += getRandomX() % 2 == 0 ? -10 : 10;
+        player.height += getRandomX() % 2 == 0 ? -10 : 10;
       }
     } else if (isPlaneCollision()) {
       handlePlaneCollision();
@@ -186,6 +213,7 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
     } else {
       food.y = 0;
       food.x = getRandomX();
+      loopsDone++;
     }
 
     if (plane.y < screenSize.height) {
@@ -251,5 +279,9 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
     int xDist = (player.x - plane.x).abs().toInt();
     bool inYRange = plane.y >= player.y && (plane.y + plane.height) >= player.y;
     return xDist < (plane.width / 2) && inYRange;
+  }
+
+  bool isGameOver() {
+    return loopsDone >= maxLoops;
   }
 }
