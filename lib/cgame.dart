@@ -27,7 +27,7 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
   double numberWH = 50;
   bool moveRight;
   int loopsDone = 1;
-  int maxLoops = 25;
+  int maxLoops = 30;
 
   CGame() {
     backgrounds = ParallaxComponent(
