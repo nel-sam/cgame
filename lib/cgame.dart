@@ -21,15 +21,16 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
   SpriteComponent food;
   SpriteComponent number1;
   SpriteComponent number2;
-  SpriteComponent gameOver;
   double newX;
   int score = 0;
   double defaultBgBaseSpeed = -200;
   double numberWH = 50;
   bool moveRight;
-  int loopsDone = 1;
-  int maxLoops = 30;
+  int loopsDone = 0;
+  int maxLoops = 25;
+  int playerSpeed;
   Bgm audio = Bgm();
+  SpriteComponent gameOver;
 
   CGame() {
     // audio.initialize();
@@ -91,7 +92,6 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
     gameOver = SpriteComponent();
     gameOver.sprite = Sprite('gameover.png', height: 200, width: 200);
     add(gameOver);
-
     setPointsDisplay();
   }
 
@@ -115,7 +115,8 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
   void resize(Size size) {
     screenSize = size;
     double screenCenterX = screenSize.width / 2;
-
+    playerSpeed = (screenSize.width / 200).ceil();
+    print(playerSpeed);
     backgrounds.width = size.width;
     backgrounds.height = size.height;
 
@@ -191,6 +192,7 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
         plane.width -= 3;
         plane.height -= 3;
         plane.x -= 3;
+        plane.y--;
         plane.angle--;
 
         player.width += getRandomX() % 2 == 0 ? -10 : 10;
@@ -200,16 +202,15 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
       handlePlaneCollision();
     }
 
-    int defaultPlayerSpeed = 2;
     int defaultFoodSpeed = 6;
     int defaultPlaneSpeed = 8;
 
     backgrounds.baseSpeed = Offset(0, defaultBgBaseSpeed + (score * 10));
     if (player.x.floor() != newX.floor()) {
       if (moveRight) {
-        if (player.x < screenSize.width) player.x += defaultPlayerSpeed;
+        if (player.x < screenSize.width) player.x += playerSpeed;
       } else {
-        if (player.x > -20) player.x -= defaultPlayerSpeed;
+        if (player.x > -20) player.x -= playerSpeed;
       }
     }
 
@@ -284,7 +285,8 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
 
   bool isPlaneCollision() {
     int xDist = (player.x - plane.x).abs().toInt();
-    bool inYRange = plane.y >= player.y && (plane.y + plane.height) >= player.y;
+    bool inYRange = (plane.y + plane.height) >= player.y &&
+        (plane.y + plane.height) <= (player.y + player.height);
     return xDist < (plane.width / 2) && inYRange;
   }
 
