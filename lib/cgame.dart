@@ -34,7 +34,6 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
 
   CGame() {
     // audio.initialize();
-    // print(audio.isPlaying);
     // if (audio.isPlaying) audio.audioPlayer.stop();
     // audio.play('music.mp3');
 
@@ -116,7 +115,6 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
     screenSize = size;
     double screenCenterX = screenSize.width / 2;
     playerSpeed = (screenSize.width / 200).ceil();
-    print(playerSpeed);
     backgrounds.width = size.width;
     backgrounds.height = size.height;
 
