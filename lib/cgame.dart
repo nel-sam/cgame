@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:flame/bgm.dart';
 import 'package:flame/components/animation_component.dart';
 import 'package:flame/components/component.dart';
 import 'package:flame/components/parallax_component.dart';
@@ -28,8 +29,14 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
   bool moveRight;
   int loopsDone = 1;
   int maxLoops = 30;
+  Bgm audio = Bgm();
 
   CGame() {
+    // audio.initialize();
+    // print(audio.isPlaying);
+    // if (audio.isPlaying) audio.audioPlayer.stop();
+    // audio.play('music.mp3');
+
     backgrounds = ParallaxComponent(
       [
         ParallaxImage(
@@ -136,7 +143,7 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
 
     number2.width = numberWH;
     number2.height = numberWH;
-    number2.x = screenCenterX - 300;
+    number2.x = (screenCenterX - (number1.width / 2)) - 40;
     number2.y = -400;
     add(number2);
 
