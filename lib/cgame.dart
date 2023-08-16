@@ -1,114 +1,186 @@
 import 'dart:math';
-import 'dart:ui';
 
-import 'package:flame/bgm.dart';
-import 'package:flame/components/animation_component.dart';
-import 'package:flame/components/component.dart';
-import 'package:flame/components/parallax_component.dart';
+import 'package:flame/components.dart';
+import 'package:flame/events.dart';
 import 'package:flame/game.dart';
-import 'package:flame/gestures.dart';
-import 'package:flame/sprite.dart';
-import 'package:flame/spritesheet.dart';
+import 'package:flame/parallax.dart';
 import 'package:flutter/material.dart';
 
-class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
-  Size screenSize;
-  ParallaxComponent backgrounds;
-  AnimationComponent player;
-  AnimationComponent plane;
-  bool isCrashing = false;
-  int crashFrameCount = 100;
-  SpriteComponent food;
-  SpriteComponent number1;
-  SpriteComponent number2;
-  double newX;
-  int score = 0;
-  double defaultBgBaseSpeed = -200;
-  double numberWH = 50;
-  bool moveRight;
-  int loopsDone = 0;
-  int maxLoops = 25;
-  int playerSpeed;
-  Bgm audio = Bgm();
-  SpriteComponent gameOver;
+class CGame extends FlameGame with TapDetector {
+  late Size screenSize = Size(0, 0);
+  late ParallaxComponent backgrounds;
+  late SpriteAnimationComponent player;
+  late SpriteAnimationComponent plane;
+  late bool isCrashing = false;
+  late int crashFrameCount = 100;
+  late SpriteComponent food;
+  late SpriteComponent number1;
+  late SpriteComponent number2;
+  late double newX = 0;
+  late int score = 0;
+  late double defaultBgBaseSpeed = -200;
+  late double numberWH = 50;
+  late bool moveRight;
+  late int loopsDone = 0;
+  late int maxLoops = 25;
+  late int playerSpeed = 0;
+  //Bgm audio = Bgm();
+  late SpriteComponent gameOver;
 
-  CGame() {
+  CGame() {}
+
+  double getRandomX() {
+    try {
+      Random rnd;
+      int min = 40;
+      int max = screenSize.width.toInt() - 60;
+      rnd = new Random();
+      int numba = (min + rnd.nextInt(max - min));
+
+      if (numba == null) {
+        numba = 0;
+      }
+
+      return numba.toDouble();
+    } catch (ex) {
+      return 100;
+    }
+  }
+
+  void handleFoodCollision() {
+    score++;
+    setPointsDisplay();
+    food.y = -100;
+    food.x = getRandomX();
+  }
+
+  void handlePlaneCollision() {
+    score--;
+    setPointsDisplay();
+    isCrashing = true;
+  }
+
+  bool isFoodCollision() {
+    double playerCenterX = player.x + (player.width / 2);
+    double playerMinY = player.y;
+    double playerMaxY = player.y + player.height;
+
+    double foodCenterX = food.x + (food.width / 2);
+    double foodMinY = food.y;
+    double foodMaxY = food.y + food.height;
+
+    bool inXRange =
+        (playerCenterX - foodCenterX).abs().toInt() < food.width / 2;
+    bool inYRange = foodMinY >= playerMinY && foodMaxY <= playerMaxY;
+    return inXRange && inYRange;
+  }
+
+  bool isGameOver() {
+    return loopsDone >= maxLoops;
+  }
+
+  bool isPlaneCollision() {
+    int xDist = (player.x - plane.x).abs().toInt();
+    bool inYRange = (plane.y + plane.height) >= player.y &&
+        (plane.y + plane.height) <= (player.y + player.height);
+    return xDist < (plane.width / 2) && inYRange;
+  }
+
+  @override
+  Future<void> onLoad() async {
+    await images.loadAllImages();
+
     // audio.initialize();
     // if (audio.isPlaying) audio.audioPlayer.stop();
     // audio.play('music.mp3');
 
-    backgrounds = ParallaxComponent(
-      [
-        ParallaxImage(
-          'water.png',
-          repeat: ImageRepeat.repeat,
-          fill: LayerFill.width,
-        ),
-        ParallaxImage('cloud.png', repeat: ImageRepeat.repeat),
-      ],
-      baseSpeed: Offset(0, defaultBgBaseSpeed),
-      layerDelta: Offset(200, -400),
-    );
+    // backgrounds = ParallaxComponent(
+    //   [
+    //     ParallaxImageData(
+    //       'water.png',
+    //       repeat: ImageRepeat.repeat,
+    //       fill: LayerFill.width,
+    //     ),
+    //     ParallaxImage('cloud.png', repeat: ImageRepeat.repeat),
+    //   ],
+    //   baseSpeed: Offset(0, defaultBgBaseSpeed),
+    //   layerDelta: Offset(200, -400),
+    // );
 
-    add(backgrounds);
+    //add(backgrounds);
 
-    final dragonSheet = SpriteSheet(
-        imageName: 'dragon_sprite.png',
-        textureWidth: 405,
-        textureHeight: 400,
-        columns: 7,
-        rows: 1);
+    // final dragonSheet = SpriteSheet(
+    //     image: 'dragon_sprite.png',
+    //     textureWidth: 405,
+    //     textureHeight: 400,
+    //     columns: 7,
+    //     rows: 1);
 
-    player = AnimationComponent.empty();
-    player.animation =
-        dragonSheet.createAnimation(0, from: 0, to: 6, stepTime: 0.1);
+    player = SpriteAnimationComponent();
+    player.animation = SpriteAnimation.fromFrameData(
+        images.fromCache('dragon_sprite.png'),
+        SpriteAnimationData.sequenced(
+            amount: 1, stepTime: 1, textureSize: Vector2(405, 400)));
     add(player);
 
-    final planeSheet = SpriteSheet(
-        imageName: 'plane.png',
-        textureWidth: 400,
-        textureHeight: 400,
-        columns: 2,
-        rows: 1);
+    // final planeSheet = SpriteSheet(
+    //     imageName: 'plane.png',
+    //     textureWidth: 400,
+    //     textureHeight: 400,
+    //     columns: 2,
+    //     rows: 1);
 
-    plane = AnimationComponent.empty();
-    plane.animation = planeSheet.createAnimation(0,
-        from: 0, to: 2, stepTime: 0.1, loop: true);
+    // plane = AnimationComponent.empty();
+    // plane.animation = planeSheet.createAnimation(
+    //     from: 0, to: 2, stepTime: 0.1, loop: true, row: 0);
+    // add(plane);
+
+    plane = SpriteAnimationComponent();
+    player.animation = SpriteAnimation.fromFrameData(
+        images.fromCache('plane.png'),
+        SpriteAnimationData.sequenced(
+            amount: 1, stepTime: 1, textureSize: Vector2(400, 400)));
     add(plane);
 
     food = SpriteComponent();
-    food.sprite = Sprite('food.png', height: 53, width: 45);
+    food.sprite =
+        Sprite(images.fromCache('food.png'), srcSize: Vector2(45, 53));
     add(food);
 
     number1 = SpriteComponent();
-    number1.sprite = Sprite('numbers/0.png', height: 50, width: 50);
+    number1.sprite =
+        Sprite(images.fromCache('numbers/0.png'), srcSize: Vector2(50, 50));
     add(number1);
 
     number2 = SpriteComponent();
-    number2.sprite = Sprite('numbers/0.png', height: 50, width: 50);
+    number2.sprite =
+        Sprite(images.fromCache('numbers/0.png'), srcSize: Vector2(50, 50));
     add(number2);
 
     gameOver = SpriteComponent();
-    gameOver.sprite = Sprite('gameover.png', height: 200, width: 200);
+    gameOver.sprite =
+        Sprite(images.fromCache('gameover.png'), srcSize: Vector2(200, 200));
     add(gameOver);
     setPointsDisplay();
+
+    backgrounds = await loadParallaxComponent([
+      ParallaxImageData('water.png'),
+      ParallaxImageData('cloud.png'),
+    ]);
+    add(backgrounds);
   }
 
-  setPointsDisplay() {
-    score = score < 0 ? 0 : score;
-    final scoreAsStr = score.toString();
+  @override
+  void onTapDown(TapDownInfo d) {
+    double min = -20;
+    double max = screenSize.width - 40;
+    moveRight = (player.x - d.eventPosition.widget.x).floor() < 0;
+    newX = moveRight ? max : min;
+  }
 
-    if (score < 10) {
-      number2.y = -400;
-      number1.sprite =
-          Sprite('numbers/$score.png', height: numberWH, width: numberWH);
-    } else {
-      number2.y = 100;
-      number1.sprite = Sprite('numbers/${scoreAsStr[1]}.png',
-          height: numberWH, width: numberWH);
-      number2.sprite = Sprite('numbers/${scoreAsStr[0]}.png',
-          height: numberWH, width: numberWH);
-    }
+  @override
+  void onTapUp(TapUpInfo event) {
+    // Do something in response to a tap event
   }
 
   void resize(Size size) {
@@ -152,15 +224,24 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
     gameOver.y = (screenSize.height / 2) - 100;
     add(gameOver);
 
-    super.resize(size);
+    //super. size = size; TODO: resize
   }
 
-  @override
-  void onTapDown(TapDownDetails d) {
-    double min = -20;
-    double max = screenSize.width - 40;
-    moveRight = (player.x - d.localPosition.dx).floor() < 0;
-    newX = moveRight ? max : min;
+  setPointsDisplay() {
+    score = score < 0 ? 0 : score;
+    final scoreAsStr = score.toString();
+
+    if (score < 10) {
+      number2.y = -400;
+      number1.sprite = Sprite(images.fromCache('numbers/$score.png'),
+          srcSize: Vector2(numberWH, numberWH));
+    } else {
+      number2.y = 100;
+      number1.sprite = Sprite(images.fromCache('numbers/${scoreAsStr[1]}.png'),
+          srcSize: Vector2(numberWH, numberWH));
+      number2.sprite = Sprite(images.fromCache('numbers/${scoreAsStr[0]}.png'),
+          srcSize: Vector2(numberWH, numberWH));
+    }
   }
 
   void update(double t) {
@@ -203,7 +284,7 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
     int defaultFoodSpeed = 6;
     int defaultPlaneSpeed = 8;
 
-    backgrounds.baseSpeed = Offset(0, defaultBgBaseSpeed + (score * 10));
+    //backgrounds.baseSpeed = Offset(0, defaultBgBaseSpeed + (score * 10)); TODO:
     if (player.x.floor() != newX.floor()) {
       if (moveRight) {
         if (player.x < screenSize.width) player.x += playerSpeed;
@@ -233,62 +314,5 @@ class CGame extends BaseGame with TapDetector, HasWidgetsOverlay {
     }
 
     super.update(t);
-  }
-
-  void handlePlaneCollision() {
-    score--;
-    setPointsDisplay();
-    isCrashing = true;
-  }
-
-  void handleFoodCollision() {
-    score++;
-    setPointsDisplay();
-    food.y = -100;
-    food.x = getRandomX();
-  }
-
-  double getRandomX() {
-    try {
-      Random rnd;
-      int min = 40;
-      int max = screenSize.width.toInt() - 60;
-      rnd = new Random();
-      int numba = (min + rnd.nextInt(max - min));
-
-      if (numba == null) {
-        numba = 0;
-      }
-
-      return numba.toDouble();
-    } catch (ex) {
-      return 100;
-    }
-  }
-
-  bool isFoodCollision() {
-    double playerCenterX = player.x + (player.width / 2);
-    double playerMinY = player.y;
-    double playerMaxY = player.y + player.height;
-
-    double foodCenterX = food.x + (food.width / 2);
-    double foodMinY = food.y;
-    double foodMaxY = food.y + food.height;
-
-    bool inXRange =
-        (playerCenterX - foodCenterX).abs().toInt() < food.width / 2;
-    bool inYRange = foodMinY >= playerMinY && foodMaxY <= playerMaxY;
-    return inXRange && inYRange;
-  }
-
-  bool isPlaneCollision() {
-    int xDist = (player.x - plane.x).abs().toInt();
-    bool inYRange = (plane.y + plane.height) >= player.y &&
-        (plane.y + plane.height) <= (player.y + player.height);
-    return xDist < (plane.width / 2) && inYRange;
-  }
-
-  bool isGameOver() {
-    return loopsDone >= maxLoops;
   }
 }
