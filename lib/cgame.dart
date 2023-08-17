@@ -4,11 +4,13 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flame/parallax.dart';
+import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 
 class CGame extends FlameGame with TapDetector {
   late Size screenSize = Size(0, 0);
-  late ParallaxComponent backgrounds;
+  late ParallaxComponent groundLayer;
+  late ParallaxComponent cloudLayer;
   late SpriteAnimationComponent player;
   late SpriteAnimationComponent plane;
   late bool isCrashing = false;
@@ -18,7 +20,7 @@ class CGame extends FlameGame with TapDetector {
   late SpriteComponent number2;
   late double newX = 0;
   late int score = 0;
-  late double defaultBgBaseSpeed = -200;
+  late double defaultBgBaseSpeed = -1;
   late double numberWH = 50;
   late bool moveRight;
   late int loopsDone = 0;
@@ -28,6 +30,12 @@ class CGame extends FlameGame with TapDetector {
   late SpriteComponent gameOver;
 
   CGame() {}
+
+  @override
+  Future<void> dispose() async {
+    await FlameAudio.bgm.stop();
+    FlameAudio.bgm.dispose();
+  }
 
   double getRandomX() {
     try {
@@ -88,26 +96,30 @@ class CGame extends FlameGame with TapDetector {
 
   @override
   Future<void> onLoad() async {
+    // FlameAudio.bgm.initialize();
+    // await FlameAudio.loop('music.mp3'); // TODO: Audio doesn't stop when exiting to title screen
+
     await images.loadAllImages();
 
-    // audio.initialize();
-    // if (audio.isPlaying) audio.audioPlayer.stop();
-    // audio.play('music.mp3');
+    groundLayer = await loadParallaxComponent(
+      [ParallaxImageData('water.png')],
+      baseVelocity: Vector2(0, defaultBgBaseSpeed), // TODO: this is too fast
+      repeat: ImageRepeat.repeat,
+      fill:
+          LayerFill.height, // TODO: The ground layer is not repeating correctly
+    );
 
-    // backgrounds = ParallaxComponent(
-    //   [
-    //     ParallaxImageData(
-    //       'water.png',
-    //       repeat: ImageRepeat.repeat,
-    //       fill: LayerFill.width,
-    //     ),
-    //     ParallaxImage('cloud.png', repeat: ImageRepeat.repeat),
-    //   ],
-    //   baseSpeed: Offset(0, defaultBgBaseSpeed),
-    //   layerDelta: Offset(200, -400),
-    // );
+    add(groundLayer);
 
-    //add(backgrounds);
+    cloudLayer = await loadParallaxComponent(
+      [ParallaxImageData('cloud.png')],
+      baseVelocity: Vector2(
+          0, defaultBgBaseSpeed), // TODO: make parallax effect more intense
+      repeat: ImageRepeat.repeat,
+      fill: LayerFill.height,
+    );
+
+    add(cloudLayer);
 
     // final dragonSheet = SpriteSheet(
     //     image: 'dragon_sprite.png',
@@ -115,13 +127,6 @@ class CGame extends FlameGame with TapDetector {
     //     textureHeight: 400,
     //     columns: 7,
     //     rows: 1);
-
-    player = SpriteAnimationComponent();
-    player.animation = SpriteAnimation.fromFrameData(
-        images.fromCache('dragon_sprite.png'),
-        SpriteAnimationData.sequenced(
-            amount: 1, stepTime: 1, textureSize: Vector2(405, 400)));
-    add(player);
 
     // final planeSheet = SpriteSheet(
     //     imageName: 'plane.png',
@@ -134,13 +139,6 @@ class CGame extends FlameGame with TapDetector {
     // plane.animation = planeSheet.createAnimation(
     //     from: 0, to: 2, stepTime: 0.1, loop: true, row: 0);
     // add(plane);
-
-    plane = SpriteAnimationComponent();
-    player.animation = SpriteAnimation.fromFrameData(
-        images.fromCache('plane.png'),
-        SpriteAnimationData.sequenced(
-            amount: 1, stepTime: 1, textureSize: Vector2(400, 400)));
-    add(plane);
 
     food = SpriteComponent();
     food.sprite =
@@ -157,17 +155,32 @@ class CGame extends FlameGame with TapDetector {
         Sprite(images.fromCache('numbers/0.png'), srcSize: Vector2(50, 50));
     add(number2);
 
-    gameOver = SpriteComponent();
-    gameOver.sprite =
-        Sprite(images.fromCache('gameover.png'), srcSize: Vector2(200, 200));
-    add(gameOver);
-    setPointsDisplay();
+    plane = SpriteAnimationComponent(
+        animation: SpriteAnimation.fromFrameData(
+            images.fromCache('plane.png'),
+            SpriteAnimationData.sequenced(
+                amount: 1,
+                stepTime: 0.1,
+                loop: true,
+                textureSize: Vector2(100, 100))));
+    add(plane);
 
-    backgrounds = await loadParallaxComponent([
-      ParallaxImageData('water.png'),
-      ParallaxImageData('cloud.png'),
-    ]);
-    add(backgrounds);
+    gameOver = SpriteComponent();
+    gameOver.sprite = Sprite(images.fromCache('gameover.png'),
+        srcSize: Vector2(0, 0), srcPosition: Vector2(-999, -999));
+    add(gameOver);
+
+    player = SpriteAnimationComponent(
+      animation: SpriteAnimation.fromFrameData(
+          images.fromCache('dragon_sprite.png'),
+          SpriteAnimationData.sequenced(
+              amount: 7, stepTime: 0.1, textureSize: Vector2(405, 400))),
+      size: Vector2(200, 200),
+      position: Vector2(this.canvasSize.x / 2 - 100, this.canvasSize.y - 230),
+    );
+    add(player);
+
+    setPointsDisplay();
   }
 
   @override
@@ -187,8 +200,8 @@ class CGame extends FlameGame with TapDetector {
     screenSize = size;
     double screenCenterX = screenSize.width / 2;
     playerSpeed = (screenSize.width / 200).ceil();
-    backgrounds.width = size.width;
-    backgrounds.height = size.height;
+    // backgrounds.width = size.width;
+    // backgrounds.height = size.height;
 
     food.x = getRandomX();
     food.y = -100;
@@ -245,6 +258,8 @@ class CGame extends FlameGame with TapDetector {
   }
 
   void update(double t) {
+    super.update(t);
+    return; // TODO: Remove
     if (isGameOver()) {
       plane.width = plane.height = 0;
       food.width = food.height = 0;
