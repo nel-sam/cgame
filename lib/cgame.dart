@@ -96,8 +96,9 @@ class CGame extends FlameGame with TapDetector {
 
   @override
   Future<void> onLoad() async {
-    // FlameAudio.bgm.initialize();
-    // await FlameAudio.loop('music.mp3'); // TODO: Audio doesn't stop when exiting to title screen
+    FlameAudio.bgm.initialize();
+    await FlameAudio.loop(
+        'music.mp3'); // TODO: Audio doesn't stop when exiting to title screen
 
     await images.loadAllImages();
 

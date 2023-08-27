@@ -2,6 +2,7 @@ import 'package:dragonpuppyfun/cgame.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,6 +28,8 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
+  final CGame game = CGame();
+
   MyHomePage({Key? key}) : super(key: key);
 
   @override
@@ -68,12 +71,12 @@ class _MyHomePageState extends State<MyHomePage> {
                 padding: const EdgeInsets.only(bottom: 32),
                 child: Text(
                   'Art by Cadence - 9 yrs old\nMusic by Annika - 5yrs old',
-                  // style: GoogleFonts.andika(
-                  //     textStyle: TextStyle(
-                  //         color: Colors.pinkAccent,
-                  //         fontSize: 16,
-                  //         fontFamily: 'Helvetica',
-                  //         fontWeight: FontWeight.bold)),
+                  style: GoogleFonts.andika(
+                      textStyle: TextStyle(
+                          color: Colors.pinkAccent,
+                          fontSize: 16,
+                          fontFamily: 'Helvetica',
+                          fontWeight: FontWeight.bold)),
                 ),
               ),
               ElevatedButton(
@@ -81,11 +84,14 @@ class _MyHomePageState extends State<MyHomePage> {
                     elevation: 0,
                     backgroundColor: Theme.of(context).colorScheme.background),
                 onPressed: () {
-                  CGame game = CGame();
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => GameWidget(game: game)),
+                      builder: (context) => Center(
+                          child:
+                              //GameWidget.controlled(gameFactory: CGame.new))
+                              GameWidget(game: widget.game)),
+                    ),
                   );
                 },
                 child: Container(
