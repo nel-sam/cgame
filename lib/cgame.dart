@@ -7,8 +7,9 @@ import 'package:flame/parallax.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 
-class CGame extends FlameGame with TapDetector {
-  late Size screenSize = Size(0, 0);
+class CGame extends FlameGame with TapDetector {}
+
+class CGame2 extends FlameGame with TapDetector {
   late ParallaxComponent groundLayer;
   late ParallaxComponent cloudLayer;
   late SpriteAnimationComponent player;
@@ -20,36 +21,55 @@ class CGame extends FlameGame with TapDetector {
   late SpriteComponent number2;
   late double newX = 0;
   late int score = 0;
-  late double defaultBgBaseSpeed = -1;
+  late double defaultBgBaseSpeed = -0.4;
   late double numberWH = 50;
-  late bool moveRight;
+  late bool moveRight = false;
   late int loopsDone = 0;
   late int maxLoops = 25;
-  late int playerSpeed = 0;
-  //Bgm audio = Bgm();
   late SpriteComponent gameOver;
+  double playerHeight = 120;
+  double playerWidth = 120;
+  late double playerMaxLeft = 0;
+  late double playerMaxRight = 0;
 
-  CGame() {}
+  bool get isGameOver => loopsDone >= maxLoops;
 
-  @override
-  Future<void> dispose() async {
-    await FlameAudio.bgm.stop();
-    FlameAudio.bgm.dispose();
+  void doCrashAnimations() {
+    crashFrameCount--;
+    plane.width -= 3;
+    plane.height -= 3;
+    plane.angle--;
+
+    playerWidth -= 1;
+    playerHeight -= 1;
+  }
+
+  void doGameOverActions() {
+    plane.width = plane.height = 0;
+    food.width = food.height = 0;
+    playerWidth = playerHeight = 0;
+    gameOver.width = 200;
+    gameOver.height = 200;
+  }
+
+  void doPostCrashActions() {
+    isCrashing = false;
+    crashFrameCount = 100;
+    plane.width = playerWidth;
+    plane.height = playerHeight;
+    plane.y = -playerHeight + 20;
+    plane.angle = 0;
   }
 
   double getRandomX() {
     try {
       Random rnd;
       int min = 40;
-      int max = screenSize.width.toInt() - 60;
+      int max = this.canvasSize.x.toInt() - 60;
       rnd = new Random();
-      int numba = (min + rnd.nextInt(max - min));
+      int num = (min + rnd.nextInt(max - min));
 
-      if (numba == null) {
-        numba = 0;
-      }
-
-      return numba.toDouble();
+      return num.toDouble();
     } catch (ex) {
       return 100;
     }
@@ -69,9 +89,9 @@ class CGame extends FlameGame with TapDetector {
   }
 
   bool isFoodCollision() {
-    double playerCenterX = player.x + (player.width / 2);
+    double playerCenterX = player.x + (playerWidth / 2);
     double playerMinY = player.y;
-    double playerMaxY = player.y + player.height;
+    double playerMaxY = player.y + playerHeight;
 
     double foodCenterX = food.x + (food.width / 2);
     double foodMinY = food.y;
@@ -83,19 +103,65 @@ class CGame extends FlameGame with TapDetector {
     return inXRange && inYRange;
   }
 
-  bool isGameOver() {
-    return loopsDone >= maxLoops;
-  }
-
   bool isPlaneCollision() {
     int xDist = (player.x - plane.x).abs().toInt();
     bool inYRange = (plane.y + plane.height) >= player.y &&
-        (plane.y + plane.height) <= (player.y + player.height);
+        (plane.y + plane.height) <= (player.y + playerHeight);
     return xDist < (plane.width / 2) && inYRange;
+  }
+
+  moveFood() {
+    int defaultFoodSpeed = max(1, (this.canvasSize.y * 0.008).floor());
+
+    if (food.y < this.canvasSize.y) {
+      food.y += score <= 0
+          ? defaultFoodSpeed
+          : defaultFoodSpeed + (score / 2).floor();
+    } else {
+      food.y = 0;
+      food.x = getRandomX();
+      loopsDone++;
+    }
+  }
+
+  movePlane() {
+    int defaultPlaneSpeed = max(1, (this.canvasSize.y * 0.008).floor());
+    bool planeIsOnScreen = plane.y < this.canvasSize.y;
+    int planeSpeed = (score / 3).floor();
+
+    planeSpeed = planeSpeed <= 0 ? defaultPlaneSpeed : planeSpeed;
+
+    if (planeIsOnScreen) {
+      plane.y += planeSpeed;
+      plane.x += Random().nextInt(3) % 3 == 0 ? -1 : 1;
+    } else {
+      plane.y = 0 - plane.height;
+      plane.x = getRandomX();
+    }
+  }
+
+  movePlayer() {
+    int defaultPlayerSpeed = max(1, (this.canvasSize.y * 0.008).floor());
+
+    if (player.x.floor() != newX.floor()) {
+      if (moveRight) {
+        if (player.x < playerMaxRight) {
+          player.x += defaultPlayerSpeed;
+        }
+      } else {
+        if (player.x > playerMaxLeft) {
+          player.x -= defaultPlayerSpeed;
+        }
+      }
+    }
   }
 
   @override
   Future<void> onLoad() async {
+    playerMaxLeft = (0 - playerWidth * 0.33).floor().toDouble();
+    playerMaxRight =
+        (this.canvasSize.x - playerWidth * 0.66).floor().toDouble();
+
     FlameAudio.bgm.initialize();
     await FlameAudio.loop(
         'music.mp3'); // TODO: Audio doesn't stop when exiting to title screen
@@ -122,123 +188,55 @@ class CGame extends FlameGame with TapDetector {
 
     add(cloudLayer);
 
-    // final dragonSheet = SpriteSheet(
-    //     image: 'dragon_sprite.png',
-    //     textureWidth: 405,
-    //     textureHeight: 400,
-    //     columns: 7,
-    //     rows: 1);
-
-    // final planeSheet = SpriteSheet(
-    //     imageName: 'plane.png',
-    //     textureWidth: 400,
-    //     textureHeight: 400,
-    //     columns: 2,
-    //     rows: 1);
-
-    // plane = AnimationComponent.empty();
-    // plane.animation = planeSheet.createAnimation(
-    //     from: 0, to: 2, stepTime: 0.1, loop: true, row: 0);
-    // add(plane);
-
-    food = SpriteComponent();
-    food.sprite =
-        Sprite(images.fromCache('food.png'), srcSize: Vector2(45, 53));
+    food = SpriteComponent(
+        position: Vector2(50, 50),
+        sprite: Sprite(images.fromCache('food.png'), srcSize: Vector2(45, 53)));
     add(food);
 
     number1 = SpriteComponent();
-    number1.sprite =
-        Sprite(images.fromCache('numbers/0.png'), srcSize: Vector2(50, 50));
+    number1.sprite = Sprite(images.fromCache('numbers/0.png'),
+        srcSize: Vector2(50, 50), srcPosition: Vector2(50, 50));
     add(number1);
 
     number2 = SpriteComponent();
-    number2.sprite =
-        Sprite(images.fromCache('numbers/0.png'), srcSize: Vector2(50, 50));
+    number2.sprite = Sprite(images.fromCache('numbers/0.png'),
+        srcSize: Vector2(50, 50), srcPosition: Vector2(50, 50));
     add(number2);
 
-    plane = SpriteAnimationComponent(
-        animation: SpriteAnimation.fromFrameData(
-            images.fromCache('plane.png'),
-            SpriteAnimationData.sequenced(
-                amount: 1,
-                stepTime: 0.1,
-                loop: true,
-                textureSize: Vector2(100, 100))));
-    add(plane);
+    // plane = SpriteAnimationComponent(
+    //   animation: SpriteAnimation.fromFrameData(
+    //       images.fromCache('plane.png'),
+    //       SpriteAnimationData.sequenced(
+    //           amount: 2, stepTime: 0.1, textureSize: Vector2(400, 400)),
+    //           ),
+    //   size: Vector2(playerWidth, playerHeight),
+    //   position: Vector2(this.canvasSize.x / 2 - 100, 10),
+    // );
+    // add(plane);
 
-    gameOver = SpriteComponent();
-    gameOver.sprite = Sprite(images.fromCache('gameover.png'),
-        srcSize: Vector2(0, 0), srcPosition: Vector2(-999, -999));
-    add(gameOver);
+    // gameOver = SpriteComponent();
+    // gameOver.sprite = Sprite(images.fromCache('gameover.png'),
+    //     srcSize: Vector2(0, 0), srcPosition: Vector2(-999, -999));
+    // add(gameOver);
 
-    player = SpriteAnimationComponent(
-      animation: SpriteAnimation.fromFrameData(
-          images.fromCache('dragon_sprite.png'),
-          SpriteAnimationData.sequenced(
-              amount: 7, stepTime: 0.1, textureSize: Vector2(405, 400))),
-      size: Vector2(200, 200),
-      position: Vector2(this.canvasSize.x / 2 - 100, this.canvasSize.y - 230),
-    );
-    add(player);
+    // player = SpriteAnimationComponent(
+    //   animation: SpriteAnimation.fromFrameData(
+    //       images.fromCache('dragon_sprite.png'),
+    //       SpriteAnimationData.sequenced(
+    //           amount: 7, stepTime: 0.1, textureSize: Vector2(405, 400))),
+    //   size: Vector2(200, 200),
+    //   position: Vector2(this.canvasSize.x / 2 - 100, this.canvasSize.y - 230),
+    // );
+    // add(player);
 
     setPointsDisplay();
   }
 
   @override
   void onTapDown(TapDownInfo d) {
-    double min = -20;
-    double max = screenSize.width - 40;
-    moveRight = (player.x - d.eventPosition.widget.x).floor() < 0;
-    newX = moveRight ? max : min;
-  }
-
-  @override
-  void onTapUp(TapUpInfo event) {
-    // Do something in response to a tap event
-  }
-
-  void resize(Size size) {
-    screenSize = size;
-    double screenCenterX = screenSize.width / 2;
-    playerSpeed = (screenSize.width / 200).ceil();
-    // backgrounds.width = size.width;
-    // backgrounds.height = size.height;
-
-    food.x = getRandomX();
-    food.y = -100;
-    food.width = 45;
-    food.height = 53;
-
-    plane.x = getRandomX();
-    plane.y = -30;
-    plane.width = 120;
-    plane.height = 120;
-
-    player.width = 200;
-    player.height = 200;
-    player.y = size.height - player.height - 100;
-    player.x = getRandomX();
-    newX = player.x;
-
-    number1.width = numberWH;
-    number1.height = numberWH;
-    number1.x = screenCenterX - number1.width / 2;
-    number1.y = 100;
-    add(number1);
-
-    number2.width = numberWH;
-    number2.height = numberWH;
-    number2.x = (screenCenterX - (number1.width / 2)) - 40;
-    number2.y = -400;
-    add(number2);
-
-    gameOver.width = 0;
-    gameOver.height = 0;
-    gameOver.x = screenCenterX - 100;
-    gameOver.y = (screenSize.height / 2) - 100;
-    add(gameOver);
-
-    //super. size = size; TODO: resize
+    moveRight =
+        ((player.x + playerWidth / 2) - d.eventPosition.widget.x).floor() < 0;
+    newX = moveRight ? playerMaxRight : playerMaxLeft;
   }
 
   setPointsDisplay() {
@@ -260,73 +258,32 @@ class CGame extends FlameGame with TapDetector {
 
   void update(double t) {
     super.update(t);
-    return; // TODO: Remove
-    if (isGameOver()) {
-      plane.width = plane.height = 0;
-      food.width = food.height = 0;
-      player.width = player.height = 0;
-      gameOver.width = 200;
-      gameOver.height = 200;
-    }
+    return;
 
-    if (isFoodCollision()) {
+    if (isGameOver) {
+      doGameOverActions();
+    } else if (isFoodCollision()) {
       handleFoodCollision();
     } else if (isCrashing) {
-      if (crashFrameCount-- <= 0) {
-        isCrashing = false;
-        crashFrameCount = 100;
-        plane.width = 120;
-        plane.height = 120;
-        plane.y = -200;
-        plane.angle = 0;
+      var isCrashDone = crashFrameCount-- <= 0;
 
-        player.width = 200;
-        player.height = 200;
+      if (isCrashDone) {
+        doPostCrashActions();
+        return;
       } else {
-        crashFrameCount--;
-        plane.width -= 3;
-        plane.height -= 3;
-        plane.x -= 3;
-        plane.y--;
-        plane.angle--;
-
-        player.width += getRandomX() % 2 == 0 ? -10 : 10;
-        player.height += getRandomX() % 2 == 0 ? -10 : 10;
+        doCrashAnimations();
       }
     } else if (isPlaneCollision()) {
       handlePlaneCollision();
-    }
-
-    int defaultFoodSpeed = 6;
-    int defaultPlaneSpeed = 8;
-
-    //backgrounds.baseSpeed = Offset(0, defaultBgBaseSpeed + (score * 10)); TODO:
-    if (player.x.floor() != newX.floor()) {
-      if (moveRight) {
-        if (player.x < screenSize.width) player.x += playerSpeed;
-      } else {
-        if (player.x > -20) player.x -= playerSpeed;
-      }
-    }
-
-    if (food.y < screenSize.height) {
-      food.y += score <= 0
-          ? defaultFoodSpeed
-          : defaultPlaneSpeed + (score / 2).floor();
     } else {
-      food.y = 0;
-      food.x = getRandomX();
-      loopsDone++;
-    }
+      // groundLayer.parallax?.baseVelocity =
+      //     Vector2(0, defaultBgBaseSpeed - (score * 0.1));
+      // cloudLayer.parallax?.baseVelocity =
+      //     Vector2(0, defaultBgBaseSpeed - (score * 0.1));
 
-    if (plane.y < screenSize.height) {
-      plane.y += score <= 0
-          ? defaultPlaneSpeed
-          : defaultFoodSpeed + (score / 3).floor();
-      plane.x += getRandomX() % 3 == 0 ? -1 : 1;
-    } else {
-      plane.y = 0;
-      plane.x = getRandomX();
+      movePlayer();
+      moveFood();
+      movePlane();
     }
 
     super.update(t);
