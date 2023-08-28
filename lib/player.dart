@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:dragonpuppyfun/airplane.dart';
 import 'package:dragonpuppyfun/cgame.dart';
 import 'package:flame/collisions.dart';
@@ -34,7 +36,9 @@ class Player extends SpriteAnimationComponent
   void onCollisionEnd(PositionComponent other) {
     if (other is ScreenHitbox) {
     } else if (other is Airplane) {
-      this.isCrashing = true;
+      isCrashing = true;
+      gameRef.score--;
+      gameRef.setPointsDisplay();
     }
 
     super.onCollisionEnd(other);
@@ -68,6 +72,21 @@ class Player extends SpriteAnimationComponent
       } else {
         size.x -= 3;
         size.y -= 3;
+      }
+    } else {
+      int defaultPlayerSpeed = max(1, (gameRef.canvasSize.y * 0.008).floor());
+      final moveRight = gameRef.moveRight;
+
+      if (moveRight == null) return;
+
+      if (moveRight!) {
+        if (this.x < gameRef.playerMaxRight) {
+          this.x += defaultPlayerSpeed;
+        }
+      } else {
+        if (this.x > gameRef.playerMaxLeft) {
+          this.x -= defaultPlayerSpeed;
+        }
       }
     }
 
