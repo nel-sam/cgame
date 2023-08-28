@@ -19,13 +19,13 @@ class CGame extends FlameGame with TapDetector, HasCollisionDetection {
   late SpriteComponent food;
   late SpriteComponent number1;
   late SpriteComponent number2;
-  late int score = 11;
+  late int score = 0;
   late double defaultGroundLayerSpeed = -0.3;
   late double defaultCloudLayerSpeed = -2;
   late double numberWH = 50;
   late bool? moveRight = null;
   late int loopsDone = 0;
-  late int maxLoops = 25;
+  late int maxLoops = 20;
   late SpriteComponent gameOver;
   late double playerHeight = 0;
   late double playerWidth = 0;
@@ -33,15 +33,16 @@ class CGame extends FlameGame with TapDetector, HasCollisionDetection {
   late double planeHeight = 0;
   late double playerMaxLeft = 0;
   late double playerMaxRight = 0;
+  final double gameOverHW = 200;
 
   bool get isGameOver => loopsDone >= maxLoops;
 
   void doGameOverActions() {
     plane.width = plane.height = 0;
     food.width = food.height = 0;
-    playerWidth = playerHeight = 0;
-    gameOver.width = 200;
-    gameOver.height = 200;
+    player.width = player.height = 0;
+    gameOver.width = gameOverHW;
+    gameOver.height = gameOverHW;
   }
 
   double getRandomX() {
@@ -77,19 +78,16 @@ class CGame extends FlameGame with TapDetector, HasCollisionDetection {
 
     groundLayer = await loadParallaxComponent(
       [ParallaxImageData('water.png')],
-      baseVelocity:
-          Vector2(0, defaultGroundLayerSpeed), // TODO: this is too fast
+      baseVelocity: Vector2(0, defaultGroundLayerSpeed),
       repeat: ImageRepeat.repeat,
-      fill:
-          LayerFill.width, // TODO: The ground layer is not repeating correctly
+      fill: LayerFill.width,
     );
 
     add(groundLayer);
 
     cloudLayer = await loadParallaxComponent(
       [ParallaxImageData('cloud.png')],
-      baseVelocity: Vector2(
-          0, defaultCloudLayerSpeed), // TODO: make parallax effect more intense
+      baseVelocity: Vector2(0, defaultCloudLayerSpeed),
       repeat: ImageRepeat.repeat,
       fill: LayerFill.height,
     );
@@ -119,9 +117,11 @@ class CGame extends FlameGame with TapDetector, HasCollisionDetection {
     player = Player(height: playerHeight, width: playerWidth);
     add(player);
 
-    gameOver = SpriteComponent();
-    gameOver.sprite = Sprite(images.fromCache('gameover.png'),
-        srcSize: Vector2(0, 0), srcPosition: Vector2(-999, -999));
+    gameOver = SpriteComponent(
+        sprite: Sprite(images.fromCache('gameover.png')),
+        size: Vector2(0, 0),
+        position: Vector2((this.canvasSize.x / 2) - (gameOverHW / 2),
+            (this.canvasSize.y / 2) - (gameOverHW / 2)));
     add(gameOver);
 
     setPointsDisplay();
