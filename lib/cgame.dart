@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:dragonpuppyfun/airplane.dart';
+import 'package:dragonpuppyfun/player.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
@@ -7,9 +9,7 @@ import 'package:flame/parallax.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 
-class CGame extends FlameGame with TapDetector {}
-
-class CGame2 extends FlameGame with TapDetector {
+class CGame extends FlameGame with TapDetector, HasCollisionDetection {
   late ParallaxComponent groundLayer;
   late ParallaxComponent cloudLayer;
   late SpriteAnimationComponent player;
@@ -19,16 +19,17 @@ class CGame2 extends FlameGame with TapDetector {
   late SpriteComponent food;
   late SpriteComponent number1;
   late SpriteComponent number2;
-  late double newX = 0;
   late int score = 0;
   late double defaultBgBaseSpeed = -0.4;
   late double numberWH = 50;
-  late bool moveRight = false;
+  late bool? moveRight = null;
   late int loopsDone = 0;
   late int maxLoops = 25;
   late SpriteComponent gameOver;
-  double playerHeight = 120;
-  double playerWidth = 120;
+  late double playerHeight = 0;
+  late double playerWidth = 0;
+  late double planeWidth = 0;
+  late double planeHeight = 0;
   late double playerMaxLeft = 0;
   late double playerMaxRight = 0;
 
@@ -36,8 +37,8 @@ class CGame2 extends FlameGame with TapDetector {
 
   void doCrashAnimations() {
     crashFrameCount--;
-    plane.width -= 3;
-    plane.height -= 3;
+    plane.width -= 2;
+    plane.height -= 2;
     plane.angle--;
 
     playerWidth -= 1;
@@ -58,6 +59,8 @@ class CGame2 extends FlameGame with TapDetector {
     plane.width = playerWidth;
     plane.height = playerHeight;
     plane.y = -playerHeight + 20;
+    plane.width = planeWidth;
+    plane.height = planeHeight;
     plane.angle = 0;
   }
 
@@ -105,13 +108,13 @@ class CGame2 extends FlameGame with TapDetector {
 
   bool isPlaneCollision() {
     int xDist = (player.x - plane.x).abs().toInt();
-    bool inYRange = (plane.y + plane.height) >= player.y &&
-        (plane.y + plane.height) <= (player.y + playerHeight);
-    return xDist < (plane.width / 2) && inYRange;
+    bool inYRange = (plane.y + planeHeight) >= player.y &&
+        (plane.y + planeHeight) <= (player.y + playerHeight);
+    return xDist < (planeWidth / 2) && inYRange;
   }
 
   moveFood() {
-    int defaultFoodSpeed = max(1, (this.canvasSize.y * 0.008).floor());
+    int defaultFoodSpeed = max(1, (this.canvasSize.y * 0.01).floor());
 
     if (food.y < this.canvasSize.y) {
       food.y += score <= 0
@@ -143,24 +146,28 @@ class CGame2 extends FlameGame with TapDetector {
   movePlayer() {
     int defaultPlayerSpeed = max(1, (this.canvasSize.y * 0.008).floor());
 
-    if (player.x.floor() != newX.floor()) {
-      if (moveRight) {
-        if (player.x < playerMaxRight) {
-          player.x += defaultPlayerSpeed;
-        }
-      } else {
-        if (player.x > playerMaxLeft) {
-          player.x -= defaultPlayerSpeed;
-        }
+    if (moveRight == null) return;
+
+    if (moveRight!) {
+      if (player.x < playerMaxRight) {
+        player.x += defaultPlayerSpeed;
+      }
+    } else {
+      if (player.x > playerMaxLeft) {
+        player.x -= defaultPlayerSpeed;
       }
     }
   }
 
   @override
   Future<void> onLoad() async {
-    playerMaxLeft = (0 - playerWidth * 0.33).floor().toDouble();
-    playerMaxRight =
-        (this.canvasSize.x - playerWidth * 0.66).floor().toDouble();
+    await super.onLoad();
+
+    playerWidth = playerHeight = this.size.x * 0.45;
+    planeWidth = planeHeight = this.size.x * 0.3;
+
+    playerMaxLeft = (0 - (playerWidth * 2)).floor().toDouble();
+    playerMaxRight = (this.canvasSize.x).floor().toDouble();
 
     FlameAudio.bgm.initialize();
     await FlameAudio.loop(
@@ -203,31 +210,16 @@ class CGame2 extends FlameGame with TapDetector {
         srcSize: Vector2(50, 50), srcPosition: Vector2(50, 50));
     add(number2);
 
-    // plane = SpriteAnimationComponent(
-    //   animation: SpriteAnimation.fromFrameData(
-    //       images.fromCache('plane.png'),
-    //       SpriteAnimationData.sequenced(
-    //           amount: 2, stepTime: 0.1, textureSize: Vector2(400, 400)),
-    //           ),
-    //   size: Vector2(playerWidth, playerHeight),
-    //   position: Vector2(this.canvasSize.x / 2 - 100, 10),
-    // );
-    // add(plane);
+    plane = Airplane(height: planeHeight, width: planeWidth);
+    add(plane);
 
-    // gameOver = SpriteComponent();
-    // gameOver.sprite = Sprite(images.fromCache('gameover.png'),
-    //     srcSize: Vector2(0, 0), srcPosition: Vector2(-999, -999));
-    // add(gameOver);
+    gameOver = SpriteComponent();
+    gameOver.sprite = Sprite(images.fromCache('gameover.png'),
+        srcSize: Vector2(0, 0), srcPosition: Vector2(-999, -999));
+    add(gameOver);
 
-    // player = SpriteAnimationComponent(
-    //   animation: SpriteAnimation.fromFrameData(
-    //       images.fromCache('dragon_sprite.png'),
-    //       SpriteAnimationData.sequenced(
-    //           amount: 7, stepTime: 0.1, textureSize: Vector2(405, 400))),
-    //   size: Vector2(200, 200),
-    //   position: Vector2(this.canvasSize.x / 2 - 100, this.canvasSize.y - 230),
-    // );
-    // add(player);
+    player = Player(height: playerHeight, width: playerWidth);
+    add(player);
 
     setPointsDisplay();
   }
@@ -236,7 +228,6 @@ class CGame2 extends FlameGame with TapDetector {
   void onTapDown(TapDownInfo d) {
     moveRight =
         ((player.x + playerWidth / 2) - d.eventPosition.widget.x).floor() < 0;
-    newX = moveRight ? playerMaxRight : playerMaxLeft;
   }
 
   setPointsDisplay() {
@@ -257,25 +248,25 @@ class CGame2 extends FlameGame with TapDetector {
   }
 
   void update(double t) {
-    super.update(t);
-    return;
-
     if (isGameOver) {
       doGameOverActions();
     } else if (isFoodCollision()) {
       handleFoodCollision();
-    } else if (isCrashing) {
-      var isCrashDone = crashFrameCount-- <= 0;
+    }
+    // else if (isCrashing) {
+    //   var isCrashDone = crashFrameCount-- <= 0;
 
-      if (isCrashDone) {
-        doPostCrashActions();
-        return;
-      } else {
-        doCrashAnimations();
-      }
-    } else if (isPlaneCollision()) {
-      handlePlaneCollision();
-    } else {
+    //   if (isCrashDone) {
+    //     doPostCrashActions();
+    //     return;
+    //   } else {
+    //     doCrashAnimations();
+    //   }
+    // }
+    // else if (isPlaneCollision()) {
+    //   handlePlaneCollision();
+    // }
+    else {
       // groundLayer.parallax?.baseVelocity =
       //     Vector2(0, defaultBgBaseSpeed - (score * 0.1));
       // cloudLayer.parallax?.baseVelocity =
