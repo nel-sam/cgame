@@ -19,10 +19,7 @@ class Player extends SpriteAnimationComponent
     if (other is Airplane) {
       if (intersectionPoints.length == 2) {
         // Calculate the collision normal and separation distance.
-        final mid = (intersectionPoints.elementAt(0) +
-                intersectionPoints.elementAt(1)) /
-            2;
-
+        final mid = (intersectionPoints.elementAt(0) + intersectionPoints.elementAt(1)) / 2;
         final collisionNormal = absoluteCenter - mid;
         final separationDistance = (size.x / 2) - collisionNormal.length;
         collisionNormal.normalize();
@@ -79,7 +76,7 @@ class Player extends SpriteAnimationComponent
 
       if (moveRight == null) return;
 
-      if (moveRight!) {
+      if (moveRight) {
         if (this.x < gameRef.playerMaxRight) {
           this.x += defaultPlayerSpeed;
         }
