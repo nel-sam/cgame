@@ -1,25 +1,26 @@
 name: dragonpuppyfun
 description: A fun simple game.
 
-version: 1.4.1+1.4.1
+version: 1.4.2+1.4.2
 
 environment:
-  sdk: '>=2.16.0 <3.0.0'
+  sdk: '>=3.11.0 <4.0.0'
+  flutter: '>=3.41.0'
 
 dependencies:
   flutter:
     sdk: flutter
 
-  cupertino_icons: ^1.0.2
-  flame: ^1.14.0
-  flame_audio: '^2.1.7'
-  google_fonts: ^6.1.0
+  cupertino_icons: ^2.0.0
+  flame: ^1.38.2
+  flame_audio: ^2.12.2
+  google_fonts: ^9.0.0
   # google_fonts: ^2.1.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_launcher_icons: ^0.13.1
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true

@@ -10,7 +10,8 @@ import 'package:flame/parallax.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 
-class CGame extends FlameGame with TapDetector, HasCollisionDetection {
+class CGame extends FlameGame
+    with MultiTouchTapDetector, HasCollisionDetection {
   late ParallaxComponent groundLayer;
   late ParallaxComponent cloudLayer;
   late SpriteAnimationComponent player;
@@ -72,7 +73,8 @@ class CGame extends FlameGame with TapDetector, HasCollisionDetection {
 
     FlameAudio.bgm.initialize();
     await FlameAudio.loop(
-        'music.mp3'); // TODO: Audio doesn't stop when exiting to title screen
+      'music.mp3',
+    ); // TODO: Audio doesn't stop when exiting to title screen
 
     await images.loadAllImages();
 
@@ -95,17 +97,18 @@ class CGame extends FlameGame with TapDetector, HasCollisionDetection {
     add(cloudLayer);
 
     number1 = SpriteComponent(
-        sprite: Sprite(images.fromCache('numbers/0.png'),
-            srcSize: Vector2(numberWH, numberWH)),
-        position: Vector2(20, 75));
+      sprite: Sprite(
+        images.fromCache('numbers/0.png'),
+        srcSize: Vector2(numberWH, numberWH),
+      ),
+      position: Vector2(20, 75),
+    );
     add(number1);
 
     number2 = SpriteComponent(
-        sprite: Sprite(
-          images.fromCache('numbers/0.png'),
-          srcSize: Vector2(0, 0),
-        ),
-        position: Vector2(60, 75));
+      sprite: Sprite(images.fromCache('numbers/0.png'), srcSize: Vector2(0, 0)),
+      position: Vector2(60, 75),
+    );
     add(number2);
 
     plane = Airplane(height: planeHeight, width: planeWidth);
@@ -118,17 +121,20 @@ class CGame extends FlameGame with TapDetector, HasCollisionDetection {
     add(player);
 
     gameOver = SpriteComponent(
-        sprite: Sprite(images.fromCache('gameover.png')),
-        size: Vector2(0, 0),
-        position: Vector2((this.canvasSize.x / 2) - (gameOverHW / 2),
-            (this.canvasSize.y / 2) - (gameOverHW / 2)));
+      sprite: Sprite(images.fromCache('gameover.png')),
+      size: Vector2(0, 0),
+      position: Vector2(
+        (this.canvasSize.x / 2) - (gameOverHW / 2),
+        (this.canvasSize.y / 2) - (gameOverHW / 2),
+      ),
+    );
     add(gameOver);
 
     setPointsDisplay();
   }
 
   @override
-  void onTapDown(TapDownInfo d) {
+  void onTapDown(int _, TapDownInfo d) {
     moveRight =
         ((player.x + playerWidth / 2) - d.eventPosition.widget.x).floor() < 0;
   }
@@ -138,15 +144,21 @@ class CGame extends FlameGame with TapDetector, HasCollisionDetection {
     final scoreAsStr = score.toString();
 
     if (score < 10) {
-      number1.sprite = Sprite(images.fromCache('numbers/$score.png'),
-          srcSize: Vector2(numberWH, numberWH));
+      number1.sprite = Sprite(
+        images.fromCache('numbers/$score.png'),
+        srcSize: Vector2(numberWH, numberWH),
+      );
       number2.width = 0;
       number2.height = 0;
     } else {
-      number1.sprite = Sprite(images.fromCache('numbers/${scoreAsStr[1]}.png'),
-          srcSize: Vector2(numberWH, numberWH));
-      number2.sprite = Sprite(images.fromCache('numbers/${scoreAsStr[0]}.png'),
-          srcSize: Vector2(numberWH, numberWH));
+      number1.sprite = Sprite(
+        images.fromCache('numbers/${scoreAsStr[1]}.png'),
+        srcSize: Vector2(numberWH, numberWH),
+      );
+      number2.sprite = Sprite(
+        images.fromCache('numbers/${scoreAsStr[0]}.png'),
+        srcSize: Vector2(numberWH, numberWH),
+      );
     }
   }
 
@@ -154,10 +166,14 @@ class CGame extends FlameGame with TapDetector, HasCollisionDetection {
     if (isGameOver) {
       doGameOverActions();
     } else {
-      groundLayer.parallax?.baseVelocity =
-          Vector2(0, defaultGroundLayerSpeed - (score * 0.02));
-      cloudLayer.parallax?.baseVelocity =
-          Vector2(0, defaultCloudLayerSpeed - (score * 0.01));
+      groundLayer.parallax?.baseVelocity = Vector2(
+        0,
+        defaultGroundLayerSpeed - (score * 0.02),
+      );
+      cloudLayer.parallax?.baseVelocity = Vector2(
+        0,
+        defaultCloudLayerSpeed - (score * 0.01),
+      );
     }
 
     super.update(t);
