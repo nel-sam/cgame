@@ -11,6 +11,7 @@ class Airplane extends SpriteAnimationComponent
   final double width;
   bool isCrashing = false;
   bool isMovingRight = true;
+  late final RectangleHitbox _hitbox;
 
   Airplane({required this.height, required this.width});
 
@@ -33,8 +34,9 @@ class Airplane extends SpriteAnimationComponent
   @override
   void onCollisionEnd(PositionComponent other) {
     if (other is ScreenHitbox) {
-    } else if (other is Player) {
+    } else if (other is Player && !isCrashing) {
       isCrashing = true;
+      _hitbox.collisionType = CollisionType.inactive;
     }
 
     super.onCollisionEnd(other);
@@ -55,13 +57,11 @@ class Airplane extends SpriteAnimationComponent
     size = Vector2(this.width, this.height);
     position = Vector2(game.canvasSize.x / 2 - 100, 10);
 
-    //add(RectangleHitbox(collisionType: CollisionType.active));
-    add(
-      RectangleHitbox(
-        size: Vector2(width * 0.3, height * 0.3),
-        position: Vector2(width * 0.05, height * 0.05),
-      ),
+    _hitbox = RectangleHitbox(
+      size: Vector2(width * 0.3, height * 0.3),
+      position: Vector2(width * 0.05, height * 0.05),
     );
+    add(_hitbox);
   }
 
   @override
@@ -72,6 +72,8 @@ class Airplane extends SpriteAnimationComponent
         size.x = width;
         size.y = height;
         angle = 0;
+        position = Vector2(game.getRandomX(), -height);
+        _hitbox.collisionType = CollisionType.active;
       } else {
         size.x -= 3;
         size.y -= 3;
