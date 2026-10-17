@@ -6,10 +6,9 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 
 class Airplane extends SpriteAnimationComponent
-    with CollisionCallbacks, HasGameRef<CGame> {
+    with CollisionCallbacks, HasGameReference<CGame> {
   final double height;
   final double width;
-  int crashFrameCount = 100;
   bool isCrashing = false;
   bool isMovingRight = true;
 
@@ -21,11 +20,9 @@ class Airplane extends SpriteAnimationComponent
       if (intersectionPoints.length == 2) {
         // Calculate the collision normal and separation distance.
         final mid = (intersectionPoints.elementAt(0) +
-                intersectionPoints.elementAt(1)) /
-            2;
+                intersectionPoints.elementAt(1)) / 2;
 
         final collisionNormal = absoluteCenter - mid;
-        final separationDistance = (size.x / 2) - collisionNormal.length;
         collisionNormal.normalize();
       }
     }
@@ -47,7 +44,7 @@ class Airplane extends SpriteAnimationComponent
     isMovingRight = Random().nextBool();
 
     animation = SpriteAnimation.fromFrameData(
-      gameRef.images.fromCache('plane.png'),
+      game.images.fromCache('plane.png'),
       SpriteAnimationData.sequenced(
         amount: 2,
         stepTime: 0.1,
@@ -56,9 +53,15 @@ class Airplane extends SpriteAnimationComponent
     );
 
     size = Vector2(this.width, this.height);
-    position = Vector2(gameRef.canvasSize.x / 2 - 100, 10);
+    position = Vector2(game.canvasSize.x / 2 - 100, 10);
 
-    add(RectangleHitbox(collisionType: CollisionType.active));
+    //add(RectangleHitbox(collisionType: CollisionType.active));
+    add(
+      RectangleHitbox(
+        size: Vector2(width * 0.3, height * 0.3),
+        position: Vector2(width * 0.05, height * 0.05),
+      ),
+    );
   }
 
   @override
@@ -75,12 +78,12 @@ class Airplane extends SpriteAnimationComponent
         angle += 1;
       }
     } else {
-      int movementAmount = 1 + (gameRef.score / 2).floor();
-      int defaultPlaneSpeed = max(1, (gameRef.canvasSize.y * 0.008).floor());
-      bool planeIsOnScreenY = this.y < gameRef.canvasSize.y;
+      int movementAmount = 1 + (game.score / 2).floor();
+      int defaultPlaneSpeed = max(1, (game.canvasSize.y * 0.008).floor());
+      bool planeIsOnScreenY = this.y < game.canvasSize.y;
       bool planeIsOnScreenX =
-          this.x < gameRef.canvasSize.x - this.width && this.x > 0;
-      int planeSpeed = defaultPlaneSpeed + (gameRef.score / 2).floor();
+          this.x < game.canvasSize.x - this.width && this.x > 0;
+      int planeSpeed = defaultPlaneSpeed + (game.score / 2).floor();
 
       planeSpeed = planeSpeed <= 0 ? defaultPlaneSpeed : planeSpeed;
 
@@ -98,7 +101,7 @@ class Airplane extends SpriteAnimationComponent
         }
       } else {
         this.y = 0 - this.height;
-        this.x = gameRef.getRandomX();
+        this.x = game.getRandomX();
       }
     }
 

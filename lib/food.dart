@@ -8,7 +8,6 @@ import 'package:flame/components.dart';
 class Food extends SpriteComponent with CollisionCallbacks, HasGameRef<CGame> {
   final double height;
   final double width;
-  int crashFrameCount = 100;
   bool isCrashing = false;
 
   Food({required this.height, required this.width});

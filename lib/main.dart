@@ -13,6 +13,7 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -28,10 +29,9 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  final CGame game = CGame();
-
-  MyHomePage({Key? key}) : super(key: key);
-
+  MyHomePage({Key? key})
+      : super(key: key);
+  
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
@@ -39,10 +39,12 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
+    final CGame game = CGame(context);
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Container(
-        color: Theme.of(context).colorScheme.background,
+        color: Theme.of(context).colorScheme.primary,
         child: Center(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -74,7 +76,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   style: GoogleFonts.andika(
                       textStyle: TextStyle(
                           color: Colors.pinkAccent,
-                          fontSize: 16,
+                          fontSize: 18,
                           fontFamily: 'Helvetica',
                           fontWeight: FontWeight.bold)),
                 ),
@@ -82,7 +84,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                     elevation: 0,
-                    backgroundColor: Theme.of(context).colorScheme.background),
+                    backgroundColor: Theme.of(context).colorScheme.primary),
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -90,7 +92,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       builder: (context) => Center(
                           child:
                               //GameWidget.controlled(gameFactory: CGame.new))
-                              GameWidget(game: widget.game)),
+                              GameWidget(game: game)),
                     ),
                   );
                 },

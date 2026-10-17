@@ -6,10 +6,9 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 
 class Player extends SpriteAnimationComponent
-    with CollisionCallbacks, HasGameRef<CGame> {
+    with CollisionCallbacks, HasGameReference<CGame> {
   final double height;
   final double width;
-  int crashFrameCount = 100;
   bool isCrashing = false;
 
   Player({required this.height, required this.width});
@@ -19,9 +18,11 @@ class Player extends SpriteAnimationComponent
     if (other is Airplane) {
       if (intersectionPoints.length == 2) {
         // Calculate the collision normal and separation distance.
-        final mid = (intersectionPoints.elementAt(0) + intersectionPoints.elementAt(1)) / 2;
+        final mid =
+            (intersectionPoints.elementAt(0) +
+                intersectionPoints.elementAt(1)) /
+            2;
         final collisionNormal = absoluteCenter - mid;
-        final separationDistance = (size.x / 2) - collisionNormal.length;
         collisionNormal.normalize();
       }
     }
@@ -34,8 +35,8 @@ class Player extends SpriteAnimationComponent
     if (other is ScreenHitbox) {
     } else if (other is Airplane) {
       isCrashing = true;
-      gameRef.score--;
-      gameRef.setPointsDisplay();
+      game.score--;
+      game.setPointsDisplay();
     }
 
     super.onCollisionEnd(other);
@@ -44,7 +45,7 @@ class Player extends SpriteAnimationComponent
   @override
   void onLoad() {
     animation = SpriteAnimation.fromFrameData(
-      gameRef.images.fromCache('dragon_sprite.png'),
+      game.images.fromCache('dragon_sprite.png'),
       SpriteAnimationData.sequenced(
         amount: 7,
         stepTime: 0.1,
@@ -53,10 +54,15 @@ class Player extends SpriteAnimationComponent
     );
 
     size = Vector2(this.width, this.height);
-    position =
-        Vector2(gameRef.canvasSize.x / 2 - 100, gameRef.canvasSize.y - 230);
+    position = Vector2(game.canvasSize.x / 2 - 100, game.canvasSize.y - 230);
 
-    add(RectangleHitbox(collisionType: CollisionType.active));
+    //add(RectangleHitbox(collisionType: CollisionType.active));
+    add(
+      RectangleHitbox(
+        size: Vector2(width * 0.3, height * 0.3),
+        position: Vector2(width * 0.05, height * 0.05),
+      ),
+    );
   }
 
   @override
@@ -71,17 +77,17 @@ class Player extends SpriteAnimationComponent
         size.y -= 3;
       }
     } else {
-      int defaultPlayerSpeed = max(1, (gameRef.canvasSize.y * 0.008).floor());
-      final moveRight = gameRef.moveRight;
+      int defaultPlayerSpeed = max(1, (game.canvasSize.y * 0.006).floor());
+      final moveRight = game.moveRight;
 
       if (moveRight == null) return;
 
       if (moveRight) {
-        if (this.x < gameRef.playerMaxRight) {
+        if (this.x < game.playerMaxRight) {
           this.x += defaultPlayerSpeed;
         }
       } else {
-        if (this.x > gameRef.playerMaxLeft) {
+        if (this.x > game.playerMaxLeft) {
           this.x -= defaultPlayerSpeed;
         }
       }

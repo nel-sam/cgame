@@ -10,19 +10,18 @@ import 'package:flame/parallax.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 
-class CGame extends FlameGame
-    with MultiTouchTapDetector, HasCollisionDetection {
+class CGame extends FlameGame with MultiTouchTapDetector, HasCollisionDetection {
   late ParallaxComponent groundLayer;
   late ParallaxComponent cloudLayer;
   late SpriteAnimationComponent player;
   late SpriteAnimationComponent plane;
-  late int crashFrameCount = 100;
   late SpriteComponent food;
   late SpriteComponent number1;
   late SpriteComponent number2;
   late int score = 0;
-  late double defaultGroundLayerSpeed = -0.3;
-  late double defaultCloudLayerSpeed = -2;
+  // Flame parallax velocities are in logical pixels per second.
+  late double defaultGroundLayerSpeed = -18;
+  late double defaultCloudLayerSpeed = -120;
   late double numberWH = 50;
   late bool? moveRight = null;
   late int loopsDone = 0;
@@ -35,8 +34,11 @@ class CGame extends FlameGame
   late double playerMaxLeft = 0;
   late double playerMaxRight = 0;
   final double gameOverHW = 200;
+  final BuildContext context;
 
   bool get isGameOver => loopsDone >= maxLoops;
+  
+  CGame(this.context);  
 
   void doGameOverActions() {
     plane.width = plane.height = 0;
@@ -135,8 +137,11 @@ class CGame extends FlameGame
 
   @override
   void onTapDown(int _, TapDownInfo d) {
-    moveRight =
-        ((player.x + playerWidth / 2) - d.eventPosition.widget.x).floor() < 0;
+    if (isGameOver) {
+        Navigator.pop(context);
+    } else {
+      moveRight = ((player.x + playerWidth / 2) - d.eventPosition.widget.x).floor() < 0;
+    }
   }
 
   setPointsDisplay() {
@@ -168,11 +173,11 @@ class CGame extends FlameGame
     } else {
       groundLayer.parallax?.baseVelocity = Vector2(
         0,
-        defaultGroundLayerSpeed - (score * 0.02),
+        defaultGroundLayerSpeed - (score * 1.2),
       );
       cloudLayer.parallax?.baseVelocity = Vector2(
         0,
-        defaultCloudLayerSpeed - (score * 0.01),
+        defaultCloudLayerSpeed - (score * 0.6),
       );
     }
 
