@@ -31,7 +31,7 @@
       "request": "launch",
       "type": "dart",
       "flutterMode": "debug",
-      "deviceId": "${input:androidPhysicalDeviceId}"
+      "deviceId": "PM1LHMA850901323"
     },
     {
       "name": "cgame - iPhone Physical Device",
