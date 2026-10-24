@@ -39,8 +39,6 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
-    final CGame game = CGame(context);
-
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Container(
@@ -81,10 +79,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           fontWeight: FontWeight.bold)),
                 ),
               ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                    elevation: 0,
-                    backgroundColor: Theme.of(context).colorScheme.primary),
+              TextButton( // Using TextButton in order to prevent little animation that happens on Press with other buttons
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -92,7 +87,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       builder: (context) => Center(
                           child:
                               //GameWidget.controlled(gameFactory: CGame.new))
-                              GameWidget(game: game)),
+                              GameWidget(game: CGame(context))),
                     ),
                   );
                 },

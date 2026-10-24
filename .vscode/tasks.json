@@ -1,0 +1,18 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Boot iPhone Simulator",
+      "type": "process",
+      "command": "xcrun",
+      // iPhone 18 Pro Max (iOS 27.0). Keep this ID in sync with launch.json.
+      "args": [
+        "simctl",
+        "bootstatus",
+        "C8833DA1-3E0A-4966-92EE-73F5FAE71D37",
+        "-b"
+      ],
+      "problemMatcher": []
+    }
+  ]
+}

@@ -7,19 +7,46 @@
     {
       "name": "cgame",
       "request": "launch",
-      "type": "dart"
+      "type": "dart",
+      "flutterMode": "debug"
     },
     {
-      "name": "cgame (profile mode)",
+      "name": "cgame - Android Emulator",
       "request": "launch",
       "type": "dart",
-      "flutterMode": "profile"
+      "flutterMode": "debug",
+      "emulatorId": "Pixel6Android16SDK36"
     },
     {
-      "name": "cgame (release mode)",
+      "name": "cgame - iPhone Simulator",
       "request": "launch",
       "type": "dart",
-      "flutterMode": "release"
+      "flutterMode": "debug",
+      // iPhone 18 Pro Max (iOS 27.0). Keep this ID in sync with tasks.json.
+      "deviceId": "C8833DA1-3E0A-4966-92EE-73F5FAE71D37",
+      "preLaunchTask": "Boot iPhone Simulator"
+    },
+    {
+      "name": "cgame - Android Physical Device",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "debug",
+      "deviceId": "${input:androidPhysicalDeviceId}"
+    },
+    {
+      "name": "cgame - iPhone Physical Device",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "debug",
+      // Update this ID from `flutter devices` when switching iPhones.
+      "deviceId": "00008101-000554541168001E"
+    },
+  ],
+  "inputs": [
+    {
+      "id": "androidPhysicalDeviceId",
+      "type": "promptString",
+      "description": "Android physical device ID from flutter devices (USB debugging must be enabled)"
     }
   ]
 }
