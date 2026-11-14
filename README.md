@@ -8,6 +8,8 @@ During one of my trips to visit my sister's family in the gloomy north I explain
 
 [Android Play store listing](https://play.google.com/store/apps/details?id=com.nrsdev.dragonpuppyfun)
 
+<img src="https://github.com/nel-sam/cgame/blob/master/marketing-assets/screenshot.webp?raw=true" width="400px" />
+
 ## The learning
 
 The goal was to teach my nieces about my cool job, how games are (sometimes) made, and to gain some cool uncle points. I'm still waiting for confirmation that the 3 goals were accomplished. 
